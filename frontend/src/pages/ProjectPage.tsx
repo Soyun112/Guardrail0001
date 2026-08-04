@@ -65,8 +65,8 @@ export default function ProjectPage() {
           프로젝트
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink-700/75">
-          프리셋으로 바로 데모하거나, 자유롭게 입력하면 Gemini가 업무를 분해합니다.
-          그로우앤코 · 디지털 마케팅 시나리오.
+          프로젝트를 입력하면 Gemini가 상위 업무로 분해하고 신호등 판정을
+          합니다. 키가 없거나 호출 실패 시에만 데모 프리셋으로 대체됩니다.
         </p>
 
         <div className="mt-8 space-y-4">
@@ -80,13 +80,13 @@ export default function ProjectPage() {
             className="w-full border border-accent/30 bg-accent-soft/60 px-5 py-4 text-left transition hover:border-accent disabled:opacity-60"
           >
             <p className="text-xs font-semibold uppercase tracking-wide text-accent-dark">
-              Demo preset
+              Demo project
             </p>
             <p className="mt-1 text-base font-semibold text-ink-900">
               {PRESET_PROJECT}
             </p>
             <p className="mt-1 text-xs text-ink-700/60">
-              하드코딩 6업무 + 신호등 판정 즉시 반환
+              Gemini로 분해·판정 (키 없으면 프리셋 fallback)
             </p>
           </button>
 

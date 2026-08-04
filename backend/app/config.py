@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     )
 
     GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.5-flash"
     ALLOWED_ORIGINS: str = "*"
     PORT: int = 8000
     SUPABASE_URL: str = ""

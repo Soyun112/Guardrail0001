@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+from app.config import settings
 from app.gemini_client import generate_text, parse_json_response
-from app.presets import get_preset_guides, is_preset_project
+from app.presets import get_preset_guides
 
 
 def build_guides(project_input: str, tasks: list[dict]) -> dict:
-    if is_preset_project(project_input) or not tasks:
-        task_ids = [t.get("id") for t in tasks if t.get("id")] if tasks else None
-        guides = get_preset_guides(task_ids)
-        return {"source": "preset", "guides": guides}
+    """Gemini-first guides. Fallback to preset/cached text if needed."""
+    if not tasks:
+        return {"source": "preset", "guides": get_preset_guides(None)}
 
-    # If all tasks already have guide from decompose, reuse
+    # Prefer guides already attached from decompose
     if all(t.get("guide") for t in tasks):
         guides = [
             {
@@ -25,7 +25,9 @@ def build_guides(project_input: str, tasks: list[dict]) -> dict:
         ]
         return {"source": "cached", "guides": guides}
 
-    prompt = f"""
+    if settings.GEMINI_API_KEY:
+        try:
+            prompt = f"""
 프로젝트: {project_input}
 업무 목록(JSON): {tasks}
 
@@ -43,6 +45,13 @@ def build_guides(project_input: str, tasks: list[dict]) -> dict:
   ]
 }}
 """
-    raw = generate_text(prompt)
-    data = parse_json_response(raw)
-    return {"source": "gemini", "guides": data.get("guides") or []}
+            raw = generate_text(prompt)
+            data = parse_json_response(raw)
+            guides = data.get("guides") or []
+            if guides:
+                return {"source": "gemini", "guides": guides}
+        except Exception:
+            pass
+
+    task_ids = [t.get("id") for t in tasks if t.get("id")]
+    return {"source": "preset_fallback", "guides": get_preset_guides(task_ids)}

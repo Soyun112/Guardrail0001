@@ -39,6 +39,7 @@ def health():
     return {
         "status": "ok",
         "gemini": "configured" if settings.GEMINI_API_KEY else "missing",
+        "model": settings.GEMINI_MODEL,
     }
 
 

@@ -2,32 +2,32 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Any
 
 import google.generativeai as genai
 from fastapi import HTTPException
 
 from app.config import settings
 
-GEMINI_MODEL = "gemini-2.0-flash"
-
 
 def require_gemini() -> None:
     if not settings.GEMINI_API_KEY:
         raise HTTPException(
             status_code=503,
-            detail="GEMINI_API_KEY가 없습니다. backend/.env 에 키를 설정하세요.",
+            detail="GEMINI_API_KEY가 없습니다. Render Environment 또는 backend/.env 에 키를 설정하세요.",
         )
 
 
 def get_model(system_instruction: str | None = None):
     require_gemini()
     genai.configure(api_key=settings.GEMINI_API_KEY)
+    model_name = settings.GEMINI_MODEL or "gemini-2.5-flash"
     if system_instruction:
         return genai.GenerativeModel(
-            GEMINI_MODEL,
+            model_name,
             system_instruction=system_instruction,
         )
-    return genai.GenerativeModel(GEMINI_MODEL)
+    return genai.GenerativeModel(model_name)
 
 
 def generate_text(prompt: str, system_instruction: str | None = None) -> str:

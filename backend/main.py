@@ -3,9 +3,15 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import memory_store
 from app.config import settings
+from app.presets import APPROVED_AI, MEMBERS, PRESET_PROJECT_NAME
+from app.schemas import AssignRequest, DecomposeRequest, ExecuteRequest, GuideRequest
+from app.services import decompose as decompose_service
+from app.services import execute as execute_service
+from app.services import guide as guide_service
 
-app = FastAPI(title="가드레일 (Guardrail)", version="0.1.0")
+app = FastAPI(title="가드레일 (Guardrail)", version="0.5.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,7 +28,9 @@ def root():
         "app": "가드레일",
         "status": "ok",
         "gemini_configured": bool(settings.GEMINI_API_KEY),
-        "phase": 1,
+        "phase": 5,
+        "preset_project": PRESET_PROJECT_NAME,
+        "approved_ai": APPROVED_AI,
     }
 
 
@@ -32,6 +40,49 @@ def health():
         "status": "ok",
         "gemini": "configured" if settings.GEMINI_API_KEY else "missing",
     }
+
+
+@app.get("/meta")
+def meta():
+    return {
+        "company": "그로우앤코",
+        "preset_project": PRESET_PROJECT_NAME,
+        "approved_ai": APPROVED_AI,
+        "members": MEMBERS,
+    }
+
+
+@app.post("/decompose")
+def decompose(body: DecomposeRequest):
+    return decompose_service.decompose_project(body.project_input)
+
+
+@app.post("/guide")
+def guide(body: GuideRequest):
+    return guide_service.build_guides(body.project_input, body.tasks)
+
+
+@app.post("/assign")
+def assign(body: AssignRequest):
+    saved = memory_store.save_assignments(
+        body.project_input,
+        [a.model_dump() for a in body.assignments],
+    )
+    return {"ok": True, "stored": "memory", "record": saved}
+
+
+@app.post("/execute")
+def execute(body: ExecuteRequest):
+    return execute_service.execute_task(
+        body.task_id,
+        body.task_name,
+        body.project_input,
+    )
+
+
+@app.get("/assignments")
+def assignments():
+    return {"items": memory_store.list_assignments()}
 
 
 if __name__ == "__main__":

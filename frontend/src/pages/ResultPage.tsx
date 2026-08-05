@@ -1,13 +1,17 @@
 import { useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { ShareResultModal } from "../components/ShareResultModal";
 import { VerdictBadge } from "../components/VerdictBadge";
 import { postExecute } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import { useSession } from "../lib/session";
 
 export default function ResultPage() {
   const navigate = useNavigate();
+  const { email } = useAuth();
   const { projectInput, tasks, members, assignments, guides, reset } =
     useSession();
+  const [shareOpen, setShareOpen] = useState(false);
   const [executingId, setExecutingId] = useState<string | null>(null);
   const [execError, setExecError] = useState<string | null>(null);
   const [execResult, setExecResult] = useState<{
@@ -168,13 +172,20 @@ export default function ResultPage() {
         </div>
       ) : null}
 
-      <div className="mt-8 flex gap-3">
+      <div className="mt-8 flex flex-wrap gap-3">
         <button
           type="button"
           onClick={() => navigate("/assign")}
           className="rounded-md border border-ink-200 bg-white px-4 py-2.5 text-sm"
         >
           이전
+        </button>
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          className="rounded-md border border-accent/35 bg-white px-4 py-2.5 text-sm font-semibold text-accent-dark hover:bg-accent-soft"
+        >
+          메일로 보내기
         </button>
         <button
           type="button"
@@ -187,6 +198,13 @@ export default function ResultPage() {
           새 프로젝트
         </button>
       </div>
+
+      <ShareResultModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        defaultTo={email && !email.includes("guest") ? email : ""}
+        payload={{ projectInput, members, tasks, assignments, guides }}
+      />
     </section>
   );
 }

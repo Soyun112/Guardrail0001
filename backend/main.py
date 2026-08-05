@@ -82,6 +82,7 @@ def execute(body: ExecuteRequest):
         body.task_id,
         body.task_name,
         body.project_input,
+        body.verdict,
     )
 
 

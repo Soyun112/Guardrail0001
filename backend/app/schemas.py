@@ -51,3 +51,4 @@ class ExecuteRequest(BaseModel):
     task_id: str
     task_name: str = ""
     project_input: str = ""
+    verdict: Verdict | None = None

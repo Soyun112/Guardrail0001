@@ -19,6 +19,7 @@ export default function ResultPage() {
     task_name: string;
     stages: { key: string; label: string; content: string }[];
     source?: string;
+    mode?: string;
   } | null>(null);
 
   const guideMap = useMemo(() => {
@@ -41,7 +42,11 @@ export default function ResultPage() {
 
   if (!tasks.length) return <Navigate to="/project" replace />;
 
-  async function runExecute(taskId: string, taskName: string) {
+  async function runExecute(
+    taskId: string,
+    taskName: string,
+    verdict: string,
+  ) {
     setExecutingId(taskId);
     setExecError(null);
     setExecNotice(null);
@@ -51,6 +56,7 @@ export default function ResultPage() {
         task_id: taskId,
         task_name: taskName,
         project_input: projectInput,
+        verdict,
       });
       if (!data.ok) {
         setExecError(data.detail || "실행할 수 없습니다.");
@@ -60,6 +66,7 @@ export default function ResultPage() {
         task_name: data.task_name,
         stages: data.stages,
         source: data.source,
+        mode: data.mode,
       });
       if (data.source === "fallback" && data.detail) {
         setExecNotice(data.detail);
@@ -91,8 +98,9 @@ export default function ResultPage() {
         결과
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-700/75">
-        팀원별 맡은 업무 · 활용 가이드 · 쓸 AI를 정리했습니다. 🟢 업무는
-        Gemini로 실행해 볼 수 있습니다.
+        팀원별 맡은 업무 · 활용 가이드 · 쓸 AI를 정리했습니다. 🟢은 결과물
+        초안, 🟡은 프롬프트·초안(사람 검증용)을 <span className="font-semibold">실행</span>으로
+        받아볼 수 있습니다.
       </p>
       <p className="mt-1 text-xs text-ink-700/50">프로젝트: {projectInput}</p>
 
@@ -142,17 +150,24 @@ export default function ResultPage() {
                       <p className="mt-1 text-xs leading-relaxed text-ink-700/70">
                         {g?.summary || g?.guide || task.guide}
                       </p>
-                      {task.verdict === "green" ? (
-                        <button
-                          type="button"
-                          disabled={executingId === task.id}
-                          onClick={() => void runExecute(task.id, task.name)}
-                          className="mt-3 rounded-md border border-accent/40 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-accent-dark hover:bg-accent-soft disabled:opacity-60"
-                        >
-                          {executingId === task.id
-                            ? "실행 중…"
-                            : "🟢 Gemini로 실행"}
-                        </button>
+                      {task.verdict === "green" || task.verdict === "amber" ? (
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            disabled={executingId === task.id}
+                            onClick={() =>
+                              void runExecute(task.id, task.name, task.verdict)
+                            }
+                            className="rounded-md border border-accent/40 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-accent-dark hover:bg-accent-soft disabled:opacity-60"
+                          >
+                            {executingId === task.id ? "실행 중…" : "실행"}
+                          </button>
+                          <p className="mt-1 text-[10px] leading-snug text-ink-700/55">
+                            {task.verdict === "green"
+                              ? "결과물 초안 생성"
+                              : "프롬프트·초안 생성 → 사람 검증"}
+                          </p>
+                        </div>
                       ) : null}
                     </li>
                   );
@@ -185,6 +200,7 @@ export default function ResultPage() {
         <div className="mt-6 border border-ink-200 bg-white p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent-dark">
             실행 결과 · {execResult.task_name}
+            {execResult.mode === "amber" ? " · 사람 검증용" : ""}
             {execResult.source === "fallback" ? " (데모)" : ""}
           </p>
           <ol className="mt-4 space-y-4">

@@ -28,11 +28,13 @@ class TaskOut(BaseModel):
 
 class DecomposeRequest(BaseModel):
     project_input: str = Field(..., min_length=1)
+    approved_ai: list[str] = Field(default_factory=list)
 
 
 class GuideRequest(BaseModel):
     project_input: str = ""
     tasks: list[dict[str, Any]] = Field(default_factory=list)
+    approved_ai: list[str] = Field(default_factory=list)
 
 
 class AssignmentItem(BaseModel):

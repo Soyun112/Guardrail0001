@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { ApprovedAiModal } from "./ApprovedAiModal";
 import { Disclaimer } from "./Disclaimer";
 
 const STEPS = [
@@ -11,9 +13,29 @@ const STEPS = [
   { path: "/result", label: "결과" },
 ];
 
+function GearIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+    </svg>
+  );
+}
+
 export function AppShell() {
   const { pathname } = useLocation();
-  const { isDemo, signOut } = useAuth();
+  const { signOut, email, isGuest } = useAuth();
+  const [aiOpen, setAiOpen] = useState(false);
   const currentIdx = STEPS.findIndex((s) => pathname.startsWith(s.path));
 
   return (
@@ -24,18 +46,38 @@ export function AppShell() {
             <p className="font-display text-xl font-extrabold tracking-tight text-accent-dark">
               가드레일
             </p>
-            <p className="text-xs text-ink-700/55">
-              팀 AI 배분 워크스페이스
-              {isDemo ? " · 데모" : ""}
-            </p>
+            <p className="text-xs text-ink-700/55">팀 AI 배분 워크스페이스</p>
           </div>
-          <button
-            type="button"
-            onClick={signOut}
-            className="rounded-md border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700/80 transition hover:border-accent/40 hover:text-accent-dark"
-          >
-            나가기
-          </button>
+          <div className="flex items-center gap-2">
+            {email ? (
+              <span className="hidden max-w-[12rem] truncate text-xs text-ink-700/70 sm:inline">
+                {email}
+              </span>
+            ) : isGuest ? (
+              <span className="hidden text-xs text-ink-700/50 sm:inline">
+                둘러보기
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setAiOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700/80 transition hover:border-accent/40 hover:text-accent-dark"
+            >
+              <GearIcon />
+              승인 AI 관리
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void signOut().then(() => {
+                  window.location.href = "/";
+                });
+              }}
+              className="rounded-md border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700/80 transition hover:border-accent/40 hover:text-accent-dark"
+            >
+              로그아웃
+            </button>
+          </div>
         </div>
         <nav className="mx-auto max-w-6xl overflow-x-auto px-4 pb-3">
           <ol className="flex min-w-max gap-1">
@@ -70,6 +112,7 @@ export function AppShell() {
       </main>
 
       <Disclaimer />
+      <ApprovedAiModal open={aiOpen} onClose={() => setAiOpen(false)} />
     </div>
   );
 }

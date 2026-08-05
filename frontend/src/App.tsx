@@ -10,7 +10,14 @@ import ResultPage from "./pages/ResultPage";
 import VerdictPage from "./pages/VerdictPage";
 
 function Protected({ children }: { children: React.ReactNode }) {
-  const { isAuthed } = useAuth();
+  const { isAuthed, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ink-50 text-sm text-ink-700/60">
+        불러오는 중…
+      </div>
+    );
+  }
   if (!isAuthed) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

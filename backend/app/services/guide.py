@@ -2,43 +2,64 @@ from __future__ import annotations
 
 from app.config import settings
 from app.gemini_client import generate_text, parse_json_response
-from app.presets import get_preset_guides
+from app.presets import APPROVED_AI, get_preset_guides
 
 
-def build_guides(project_input: str, tasks: list[dict]) -> dict:
-    """Gemini-first guides. Fallback to preset/cached text if needed."""
+def _resolve_approved(approved_ai: list[str] | None) -> list[str]:
+    cleaned = [a.strip() for a in (approved_ai or []) if a and str(a).strip()]
+    return cleaned or list(APPROVED_AI)
+
+
+def _clamp_ai(name: str | None, approved: list[str]) -> str:
+    if name and name in approved:
+        return name
+    return approved[0]
+
+
+def build_guides(
+    project_input: str,
+    tasks: list[dict],
+    approved_ai: list[str] | None = None,
+) -> dict:
+    approved = _resolve_approved(approved_ai)
+
     if not tasks:
-        return {"source": "preset", "guides": get_preset_guides(None)}
+        guides = get_preset_guides(None)
+        for g in guides:
+            g["recommended_ai"] = _clamp_ai(g.get("recommended_ai"), approved)
+        return {"source": "preset", "guides": guides, "approved_ai": approved}
 
-    # Prefer guides already attached from decompose
     if all(t.get("guide") for t in tasks):
         guides = [
             {
                 "task_id": t.get("id"),
                 "task_name": t.get("name"),
                 "verdict": t.get("verdict"),
-                "recommended_ai": t.get("recommended_ai", "Gemini"),
+                "recommended_ai": _clamp_ai(t.get("recommended_ai"), approved),
                 "guide": t.get("guide"),
                 "how": t.get("guide"),
             }
             for t in tasks
         ]
-        return {"source": "cached", "guides": guides}
+        return {"source": "cached", "guides": guides, "approved_ai": approved}
 
     if settings.GEMINI_API_KEY:
         try:
+            allowed = " | ".join(approved)
             prompt = f"""
 프로젝트: {project_input}
+승인 AI 목록: {approved}
 업무 목록(JSON): {tasks}
 
-각 업무에 대해 승인 AI(Gemini 또는 Copilot) 활용 가이드를 JSON으로만 출력:
+각 업무에 대해 승인 AI 활용 가이드를 JSON으로만 출력.
+recommended_ai는 [{allowed}] 중 하나만.
 {{
   "guides": [
     {{
       "task_id": "...",
       "task_name": "...",
       "verdict": "green|amber|red",
-      "recommended_ai": "Gemini|Copilot",
+      "recommended_ai": "{approved[0]}",
       "guide": "한 줄",
       "how": "2~3문장 활용법"
     }}
@@ -48,10 +69,15 @@ def build_guides(project_input: str, tasks: list[dict]) -> dict:
             raw = generate_text(prompt)
             data = parse_json_response(raw)
             guides = data.get("guides") or []
+            for g in guides:
+                g["recommended_ai"] = _clamp_ai(g.get("recommended_ai"), approved)
             if guides:
-                return {"source": "gemini", "guides": guides}
+                return {"source": "gemini", "guides": guides, "approved_ai": approved}
         except Exception:
             pass
 
     task_ids = [t.get("id") for t in tasks if t.get("id")]
-    return {"source": "preset_fallback", "guides": get_preset_guides(task_ids)}
+    guides = get_preset_guides(task_ids)
+    for g in guides:
+        g["recommended_ai"] = _clamp_ai(g.get("recommended_ai"), approved)
+    return {"source": "preset_fallback", "guides": guides, "approved_ai": approved}

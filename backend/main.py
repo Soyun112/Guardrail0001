@@ -55,12 +55,16 @@ def meta():
 
 @app.post("/decompose")
 def decompose(body: DecomposeRequest):
-    return decompose_service.decompose_project(body.project_input)
+    return decompose_service.decompose_project(body.project_input, body.approved_ai)
 
 
 @app.post("/guide")
 def guide(body: GuideRequest):
-    return guide_service.build_guides(body.project_input, body.tasks)
+    return guide_service.build_guides(
+        body.project_input,
+        body.tasks,
+        body.approved_ai,
+    )
 
 
 @app.post("/assign")

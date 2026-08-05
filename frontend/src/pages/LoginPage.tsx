@@ -1,4 +1,5 @@
 import { Navigate, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Disclaimer } from "../components/Disclaimer";
 import { useAuth } from "../lib/auth";
 
@@ -44,27 +45,52 @@ const SIGNALS = [
 ];
 
 const signalDot: Record<"green" | "amber" | "red", string> = {
-  green: "bg-signal-green",
-  amber: "bg-signal-amber",
-  red: "bg-signal-red",
+  green: "bg-signal-green signal-glow-green",
+  amber: "bg-signal-amber signal-glow-amber",
+  red: "bg-signal-red signal-glow-red",
 };
+
+const PREVIEW_TASKS = [
+  { name: "시장·경쟁사 조사", signal: "green" as const },
+  { name: "콘텐츠 기획", signal: "amber" as const },
+  { name: "카피라이팅", signal: "green" as const },
+  { name: "광고 예산 배분", signal: "red" as const },
+];
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { enterDemo, isAuthed } = useAuth();
+  const { enterGuest, isAuthed, loading, signInWithGoogle, configured } =
+    useAuth();
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authBusy, setAuthBusy] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ink-50 text-sm text-ink-700/60">
+        불러오는 중…
+      </div>
+    );
+  }
 
   if (isAuthed) {
     return <Navigate to="/project" replace />;
   }
 
-  function startDemo() {
-    enterDemo();
+  function startWithoutLogin() {
+    enterGuest();
     navigate("/project");
+  }
+
+  async function startWithGoogle() {
+    setAuthBusy(true);
+    setAuthError(null);
+    const { error } = await signInWithGoogle();
+    setAuthBusy(false);
+    if (error) setAuthError(error);
   }
 
   return (
     <div className="min-h-screen bg-ink-50 text-ink-900">
-      {/* Top nav */}
       <header className="sticky top-0 z-40 border-b border-ink-200/70 bg-ink-50/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <a href="#top" className="font-display text-xl font-extrabold tracking-tight text-accent-dark">
@@ -86,20 +112,17 @@ export default function LoginPage() {
           </nav>
           <button
             type="button"
-            onClick={startDemo}
-            className="rounded-md bg-accent px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark"
+            onClick={() => void startWithGoogle()}
+            disabled={authBusy}
+            className="rounded-md bg-accent px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
           >
-            데모로 시작
+            시작하기
           </button>
         </div>
       </header>
 
-      {/* Hero — one composition, brand first */}
       <section id="top" className="relative min-h-[88vh] overflow-hidden">
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-        >
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
           <div className="animate-drift absolute -left-24 top-10 h-[28rem] w-[28rem] rounded-full bg-[#9fd9cf]/40 blur-3xl" />
           <div className="animate-drift absolute -right-16 bottom-0 h-[22rem] w-[22rem] rounded-full bg-[#c5d6d0]/70 blur-3xl [animation-delay:2s]" />
           <div
@@ -112,7 +135,7 @@ export default function LoginPage() {
           />
         </div>
 
-        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:pt-24">
+        <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-16 md:grid-cols-[1.05fr_0.95fr] md:items-center md:pt-24">
           <div>
             <p className="animate-rise font-display text-5xl font-extrabold tracking-tight text-accent-dark md:text-6xl">
               가드레일
@@ -127,59 +150,80 @@ export default function LoginPage() {
             <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={startDemo}
-                className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark"
+                onClick={() => void startWithGoogle()}
+                disabled={authBusy}
+                className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
               >
-                데모로 시작 (로그인 없이)
+                {authBusy ? "이동 중…" : "Google로 계속하기"}
               </button>
-              <a
-                href="#flow"
+              <button
+                type="button"
+                onClick={startWithoutLogin}
                 className="rounded-md border border-ink-200 bg-white/70 px-6 py-3 text-sm font-semibold text-ink-800 transition hover:border-accent hover:text-accent-dark"
               >
-                흐름 보기
-              </a>
+                로그인 없이 둘러보기
+              </button>
             </div>
-            <p className="mt-5 text-xs text-ink-700/55">
-              승인 AI · Gemini · Copilot · 그로우앤코 데모 시나리오
-            </p>
+            {authError ? (
+              <p className="mt-3 text-xs text-signal-red">{authError}</p>
+            ) : null}
+            {!configured ? (
+              <p className="mt-2 text-xs text-ink-700/50">
+                Google 로그인은 Supabase 환경변수 설정 후 사용할 수 있습니다.
+              </p>
+            ) : null}
+            <p className="mt-5 text-xs text-ink-700/55">승인 AI · Gemini · Copilot</p>
           </div>
 
-          {/* Dominant visual plane — workflow panel, not floating cards */}
-          <div className="animate-rise-delay relative hidden overflow-hidden rounded-none border border-ink-200/80 bg-ink-900 text-ink-50 shadow-2xl md:block md:min-h-[26rem]">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_20%,rgba(13,148,136,0.35),transparent_55%)]" />
-            <div className="relative flex h-full flex-col p-7">
-              <p className="font-display text-sm font-semibold tracking-wide text-accent-soft">
-                WORKFLOW PREVIEW
-              </p>
-              <p className="mt-3 text-lg font-medium leading-snug">
-                여름 신제품 SNS 캠페인
-              </p>
-              <ol className="mt-8 space-y-4">
-                {[
-                  { name: "시장·경쟁사 조사", signal: "green" as const },
-                  { name: "콘텐츠 기획", signal: "amber" as const },
-                  { name: "카피라이팅", signal: "green" as const },
-                  { name: "광고 예산 배분", signal: "red" as const },
-                ].map((item, i) => (
-                  <li key={item.name} className="flex items-center gap-3">
-                    <span className="w-5 text-xs text-ink-200/60">{i + 1}</span>
-                    <span
-                      className={`h-2.5 w-2.5 rounded-full ${signalDot[item.signal]} animate-signal`}
-                      style={{ animationDelay: `${i * 0.35}s` }}
-                    />
-                    <span className="text-sm text-ink-100/90">{item.name}</span>
-                  </li>
-                ))}
-              </ol>
-              <div className="mt-auto border-t border-white/10 pt-5 text-xs text-ink-200/70">
-                분배는 사람(팀장)의 몫 · AI 자동매칭 없음
+          {/* Redesigned workflow preview */}
+          <div className="hero-stage animate-rise-delay hidden md:block">
+            <div className="hero-stack">
+              <div className="hero-stack-back" aria-hidden />
+              <div className="hero-stack-mid" aria-hidden />
+              <div className="hero-card">
+                <div className="hero-glass" aria-hidden />
+                <div className="relative flex h-full flex-col p-7">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-teal-100/70">
+                      Workflow
+                    </p>
+                    <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-[10px] text-teal-50/80 backdrop-blur">
+                      Live preview
+                    </span>
+                  </div>
+                  <p className="mt-4 font-display text-xl font-semibold tracking-tight text-white">
+                    여름 신제품 SNS 캠페인
+                  </p>
+                  <p className="mt-1 text-xs text-teal-100/55">신호등 판정 · 승인 AI 가이드</p>
+
+                  <ol className="mt-8 space-y-3.5">
+                    {PREVIEW_TASKS.map((item, i) => (
+                      <li
+                        key={item.name}
+                        className="hero-row group flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5 backdrop-blur-sm transition hover:border-white/20 hover:bg-white/[0.1]"
+                      >
+                        <span className="w-5 text-[11px] tabular-nums text-teal-100/45">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span
+                          className={`hero-dot h-2.5 w-2.5 rounded-full transition duration-300 ${signalDot[item.signal]} animate-signal`}
+                          style={{ animationDelay: `${i * 0.35}s` }}
+                        />
+                        <span className="text-sm text-teal-50/95">{item.name}</span>
+                      </li>
+                    ))}
+                  </ol>
+
+                  <div className="mt-auto border-t border-white/10 pt-5 text-xs text-teal-100/55">
+                    분배는 사람(팀장)의 몫 · AI 자동매칭 없음
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Problem */}
       <section id="problem" className="border-t border-ink-200/80 bg-white py-20">
         <div className="mx-auto max-w-6xl px-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
@@ -219,7 +263,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Flow */}
       <section id="flow" className="border-t border-ink-200/80 bg-ink-50 py-20">
         <div className="mx-auto max-w-6xl px-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
@@ -252,7 +295,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Signals */}
       <section id="signals" className="border-t border-ink-200/80 bg-white py-20">
         <div className="mx-auto max-w-6xl px-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
@@ -271,12 +313,8 @@ export default function LoginPage() {
                 className="border border-ink-200/90 bg-ink-50/60 p-6"
               >
                 <div className="flex items-center gap-3">
-                  <span
-                    className={`h-3 w-3 rounded-full ${signalDot[s.tone]}`}
-                  />
-                  <h3 className="text-base font-semibold text-ink-900">
-                    {s.label}
-                  </h3>
+                  <span className={`h-3 w-3 rounded-full ${signalDot[s.tone]}`} />
+                  <h3 className="text-base font-semibold text-ink-900">{s.label}</h3>
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-ink-700/75">
                   {s.meaning}
@@ -287,7 +325,6 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Start CTA */}
       <section
         id="start"
         className="relative overflow-hidden border-t border-ink-200/80 bg-ink-900 py-20 text-ink-50"
@@ -299,24 +336,25 @@ export default function LoginPage() {
               가드레일
             </p>
             <p className="mt-4 text-base leading-relaxed text-ink-100/75">
-              그로우앤코 · 여름 신제품 SNS 캠페인 프리셋으로 전체 흐름을
-              바로 확인할 수 있습니다. 키·로그인 없이 데모 가능합니다.
+              프로젝트를 입력하고, 신호등 판정과 승인 AI 가이드로 팀에 AI를
+              배분해 보세요.
             </p>
           </div>
           <div className="mt-8 flex flex-col gap-3 md:mt-0 md:min-w-[16rem]">
             <button
               type="button"
-              onClick={startDemo}
-              className="rounded-md bg-accent px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-accent-dark"
+              onClick={() => void startWithGoogle()}
+              disabled={authBusy}
+              className="rounded-md bg-accent px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
             >
-              데모로 시작 (로그인 없이)
+              Google로 계속하기
             </button>
             <button
               type="button"
-              disabled
-              className="cursor-not-allowed rounded-md border border-white/15 px-6 py-3.5 text-sm text-ink-100/35"
+              onClick={startWithoutLogin}
+              className="rounded-md border border-white/15 px-6 py-3.5 text-sm text-ink-100/90 transition hover:border-white/40"
             >
-              이메일 로그인 (Phase 5)
+              로그인 없이 둘러보기
             </button>
           </div>
         </div>
@@ -326,7 +364,7 @@ export default function LoginPage() {
         <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <p className="font-display text-lg font-bold text-ink-50">가드레일</p>
           <p className="text-xs">
-            B2B 해커톤 MVP · Gemini · Copilot · 분배는 팀장(사람) 몫
+            B2B · Gemini · Copilot · 분배는 팀장(사람) 몫
           </p>
         </div>
       </footer>

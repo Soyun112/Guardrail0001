@@ -22,7 +22,7 @@ export function getHealth() {
   return request<{ status: string; gemini: string }>("/health");
 }
 
-export function postDecompose(project_input: string) {
+export function postDecompose(project_input: string, approved_ai?: string[]) {
   return request<{
     source: string;
     company: { name: string };
@@ -33,16 +33,24 @@ export function postDecompose(project_input: string) {
     workflow_order: string[];
   }>("/decompose", {
     method: "POST",
-    body: JSON.stringify({ project_input }),
+    body: JSON.stringify({ project_input, approved_ai: approved_ai || [] }),
   });
 }
 
-export function postGuide(project_input: string, tasks: unknown[]) {
+export function postGuide(
+  project_input: string,
+  tasks: unknown[],
+  approved_ai?: string[],
+) {
   return request<{ source: string; guides: import("./types").GuideItem[] }>(
     "/guide",
     {
       method: "POST",
-      body: JSON.stringify({ project_input, tasks }),
+      body: JSON.stringify({
+        project_input,
+        tasks,
+        approved_ai: approved_ai || [],
+      }),
     },
   );
 }

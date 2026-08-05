@@ -12,9 +12,10 @@ import {
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { ApprovedAiPanel } from "../components/ApprovedAiPanel";
 import { VerdictBadge } from "../components/VerdictBadge";
 import { postAssign } from "../lib/api";
+import { useAuth } from "../lib/auth";
+import { saveAssignmentsBundle, saveProjectBundle } from "../lib/persist";
 import { useSession } from "../lib/session";
 import type { TaskItem } from "../lib/types";
 
@@ -98,9 +99,14 @@ function DropColumn({
 
 export default function AssignPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     projectInput,
+    goal,
+    projectId,
+    setProjectId,
     tasks,
+    guides,
     members,
     assignments,
     assignTask,
@@ -156,6 +162,28 @@ export default function AssignPage() {
     setError(null);
     try {
       await postAssign(projectInput, items);
+
+      if (user?.id) {
+        let pid = projectId;
+        if (!pid) {
+          pid = await saveProjectBundle({
+            userId: user.id,
+            rawInput: projectInput,
+            goal,
+            tasks,
+            guides,
+          });
+          setProjectId(pid);
+        }
+        if (pid) {
+          await saveAssignmentsBundle({
+            projectId: pid,
+            assignments: items,
+            tasks,
+          });
+        }
+      }
+
       navigate("/result");
     } catch (err) {
       setError(err instanceof Error ? err.message : "분배 저장 실패");
@@ -164,7 +192,7 @@ export default function AssignPage() {
     }
   }
 
-  function autoFillDemo() {
+  function autoFillEven() {
     const next: Record<string, "A" | "B" | "C"> = {};
     const order: ("A" | "B" | "C")[] = ["A", "B", "C"];
     tasks.forEach((t, i) => {
@@ -174,94 +202,91 @@ export default function AssignPage() {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_240px]">
-      <section>
-        <p className="font-display text-sm font-bold text-accent/50">05</p>
-        <h1 className="mt-1 font-display text-3xl font-bold tracking-tight text-ink-900">
-          분배
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm text-ink-700/75">
-          업무 카드를 팀원 컬럼으로 드래그하세요.{" "}
-          <span className="font-semibold text-ink-900">
-            분배는 팀장(사람) 몫
-          </span>
-          입니다. AI 자동매칭은 없습니다.
-        </p>
+    <section>
+      <p className="font-display text-sm font-bold text-accent/50">05</p>
+      <h1 className="mt-1 font-display text-3xl font-bold tracking-tight text-ink-900">
+        분배
+      </h1>
+      <p className="mt-3 max-w-2xl text-sm text-ink-700/75">
+        업무 카드를 팀원 컬럼으로 드래그하세요.{" "}
+        <span className="font-semibold text-ink-900">
+          분배는 팀장(사람) 몫
+        </span>
+        입니다. AI 자동매칭은 없습니다.
+      </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={autoFillDemo}
-            className="rounded-md border border-ink-200 bg-white px-3 py-1.5 text-xs text-ink-700"
-          >
-            데모용 균등 배정
-          </button>
-        </div>
-
-        <DndContext
-          sensors={sensors}
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={autoFillEven}
+          className="rounded-md border border-ink-200 bg-white px-3 py-1.5 text-xs text-ink-700"
         >
-          <div className="mt-6 grid gap-4 lg:grid-cols-4">
-            <DropColumn
-              id="pool"
-              title="미배정"
-              traits={["대기"]}
-              blurb="여기로 되돌릴 수 있습니다"
-            >
-              {unassigned.map((task) => (
-                <DraggableTask key={task.id} task={task} />
-              ))}
-            </DropColumn>
+          균등 배정
+        </button>
+      </div>
 
-            {members.map((m) => (
-              <DropColumn
-                key={m.id}
-                id={m.id}
-                title={m.name}
-                traits={m.traits}
-                blurb={m.blurb}
-              >
-                {tasks
-                  .filter((t) => assignments[t.id] === m.id)
-                  .map((task) => (
-                    <DraggableTask key={task.id} task={task} />
-                  ))}
-              </DropColumn>
+      <DndContext
+        sensors={sensors}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
+        <div className="mt-6 grid gap-4 lg:grid-cols-4">
+          <DropColumn
+            id="pool"
+            title="미배정"
+            traits={["대기"]}
+            blurb="여기로 되돌릴 수 있습니다"
+          >
+            {unassigned.map((task) => (
+              <DraggableTask key={task.id} task={task} />
             ))}
-          </div>
+          </DropColumn>
 
-          <DragOverlay>
-            {activeTask ? <TaskCard task={activeTask} dragging /> : null}
-          </DragOverlay>
-        </DndContext>
-
-        {error ? (
-          <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-signal-red">
-            {error}
-          </p>
-        ) : null}
-
-        <div className="mt-8 flex gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/guide")}
-            className="rounded-md border border-ink-200 bg-white px-4 py-2.5 text-sm"
-          >
-            이전
-          </button>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void saveAndContinue()}
-            className="rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
-          >
-            {busy ? "저장 중…" : "다음: 결과"}
-          </button>
+          {members.map((m) => (
+            <DropColumn
+              key={m.id}
+              id={m.id}
+              title={m.name}
+              traits={m.traits}
+              blurb={m.blurb}
+            >
+              {tasks
+                .filter((t) => assignments[t.id] === m.id)
+                .map((task) => (
+                  <DraggableTask key={task.id} task={task} />
+                ))}
+            </DropColumn>
+          ))}
         </div>
-      </section>
-      <ApprovedAiPanel />
-    </div>
+
+        <DragOverlay>
+          {activeTask ? <TaskCard task={activeTask} dragging /> : null}
+        </DragOverlay>
+      </DndContext>
+
+      {error ? (
+        <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-signal-red">
+          {error}
+        </p>
+      ) : null}
+
+      <div className="mt-8 flex gap-3">
+        <button
+          type="button"
+          onClick={() => navigate("/guide")}
+          className="rounded-md border border-ink-200 bg-white px-4 py-2.5 text-sm"
+        >
+          이전
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void saveAndContinue()}
+          className="rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-dark disabled:opacity-60"
+        >
+          {busy ? "저장 중…" : "다음: 결과"}
+        </button>
+      </div>
+    </section>
   );
 }

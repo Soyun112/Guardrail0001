@@ -10,7 +10,7 @@ COMPANY = {
     "industry": "디지털 마케팅",
 }
 
-PRESET_PROJECT_NAME = "여름 신제품 SNS 캠페인"
+PRESET_PROJECT_NAME = "여름 신제품 수영복 SNS 캠페인"
 
 MEMBERS = [
     {
@@ -139,8 +139,10 @@ def is_preset_project(raw_input: str) -> bool:
     preset_compact = "".join(PRESET_PROJECT_NAME.split())
     return (
         compact == preset_compact
+        or "여름신제품수영복" in compact
         or "여름신제품" in compact
         or "신제품SNS캠페인" in compact
+        or "수영복SNS" in compact
     )
 
 
@@ -150,7 +152,7 @@ def get_preset_decompose_response(raw_input: str) -> dict:
         "company": COMPANY,
         "project": {
             "raw_input": raw_input.strip() or PRESET_PROJECT_NAME,
-            "goal": "여름 신제품 SNS 인지·전환 캠페인 운영",
+            "goal": "여름 신제품 수영복 SNS 인지·전환 캠페인 운영",
         },
         "approved_ai": APPROVED_AI,
         "members": MEMBERS,

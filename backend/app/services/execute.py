@@ -119,7 +119,7 @@ def execute_task(
         preset = None
 
     name = task_name or (preset["name"] if preset else task_id)
-    project = project_input or "여름 신제품 SNS 캠페인"
+    project = project_input or "여름 신제품 수영복 SNS 캠페인"
     effective = (verdict or (preset["verdict"] if preset else "green") or "green").lower()
 
     if effective == "red":

@@ -1,6 +1,6 @@
-# 가드레일 (Guardrail) — Hackathon MVP
+# Guiderail — Hackathon MVP
 
-팀장이 프로젝트를 입력하면 AI가 업무를 분해·신호등 판정하고, 승인 AI 가이드와 드래그 분배를 돕는 B2B 웹앱.
+팀장이 프로젝트를 입력하면 AI가 업무를 분해·신호등 판정하고, 승인 AI 가이드와 스킬 기반 자동 배정(드래그 조정)을 돕는 B2B 웹앱.
 
 **LLM**: Google Gemini (`gemini-2.0-flash`)
 
@@ -37,7 +37,7 @@ PORT=8000
 VITE_API_URL=http://127.0.0.1:8000
 ```
 
-> 프리셋「여름 신제품 SNS 캠페인」은 API 키 없이 동작합니다. 자유입력·🟢 실행만 `GEMINI_API_KEY`가 필요합니다.
+> 프리셋「여름 신제품 수영복 SNS 캠페인」은 API 키 없이 동작합니다. 자유입력·실행만 `GEMINI_API_KEY`가 필요합니다.
 
 ## 실행
 

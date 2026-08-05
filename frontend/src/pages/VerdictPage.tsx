@@ -39,8 +39,8 @@ export default function VerdictPage() {
         판정
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-700/75">
-        3축: 정확성 치명도 · 되돌릴 수 있나 · 판단·책임 필요 여부. 🔴/🟡는
-        원인유형을 함께 표시합니다.
+        3축: 정확성 치명도 · 되돌릴 수 있나 · 판단·책임 필요 여부. 워크플로
+        순서를 한눈에 보고, 🔴/🟡는 원인유형을 함께 확인하세요.
       </p>
 
       <div className="mt-8 border border-ink-200 bg-white p-4">
@@ -89,7 +89,7 @@ export default function VerdictPage() {
                 <p>원인유형: —</p>
               )}
               <p>
-                추천 승인 AI:{" "}
+                추천 AI:{" "}
                 <span className="font-semibold text-accent-dark">
                   {task.recommended_ai}
                 </span>

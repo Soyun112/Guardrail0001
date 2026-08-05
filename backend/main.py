@@ -11,7 +11,7 @@ from app.services import decompose as decompose_service
 from app.services import execute as execute_service
 from app.services import guide as guide_service
 
-app = FastAPI(title="가드레일 (Guardrail)", version="0.5.0")
+app = FastAPI(title="Guiderail", version="0.5.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,7 +25,7 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {
-        "app": "가드레일",
+        "app": "Guiderail",
         "status": "ok",
         "gemini_configured": bool(settings.GEMINI_API_KEY),
         "phase": 5,

@@ -14,7 +14,6 @@ export default function ResultPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [executingId, setExecutingId] = useState<string | null>(null);
   const [execError, setExecError] = useState<string | null>(null);
-  const [execNotice, setExecNotice] = useState<string | null>(null);
   const [execResult, setExecResult] = useState<{
     task_name: string;
     stages: { key: string; label: string; content: string }[];
@@ -49,7 +48,6 @@ export default function ResultPage() {
   ) {
     setExecutingId(taskId);
     setExecError(null);
-    setExecNotice(null);
     setExecResult(null);
     try {
       const data = await postExecute({
@@ -68,9 +66,6 @@ export default function ResultPage() {
         source: data.source,
         mode: data.mode,
       });
-      if (data.source === "fallback" && data.detail) {
-        setExecNotice(data.detail);
-      }
     } catch (err) {
       const raw = err instanceof Error ? err.message : "실행 실패";
       const lower = raw.toLowerCase();
@@ -187,12 +182,6 @@ export default function ResultPage() {
       {execError ? (
         <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-signal-red">
           {execError}
-        </p>
-      ) : null}
-
-      {execNotice ? (
-        <p className="mt-4 border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          {execNotice}
         </p>
       ) : null}
 

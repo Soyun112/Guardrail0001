@@ -12,7 +12,7 @@ PRESET_GUIDE_WORKFLOWS: dict[str, dict] = {
                 "title": "경쟁·트렌드 검색",
                 "tool": "Perplexity",
                 "instruction": "최근 30일 기준 경쟁사 3곳의 SNS·광고 캠페인을 검색하고 출처 URL을 남긴다.",
-                "prompt_example": "여름 신제품 SNS 캠페인 기준으로 경쟁사 3곳의 최근 30일 캠페인·톤·채널을 표로 정리하고 출처 URL을 붙여줘.",
+                "prompt_example": "여름 신제품 수영복 SNS 캠페인 기준으로 경쟁사 3곳의 최근 30일 캠페인·톤·채널을 표로 정리하고 출처 URL을 붙여줘.",
             },
             {
                 "order": 2,
@@ -40,7 +40,7 @@ PRESET_GUIDE_WORKFLOWS: dict[str, dict] = {
                 "title": "콘셉트 후보 생성",
                 "tool": "Claude",
                 "instruction": "타깃·채널·톤을 넣고 콘텐츠 콘셉트 5안을 뽑는다.",
-                "prompt_example": "타깃 20–30대, 채널 Instagram·TikTok, 톤은 상쾌·실용. 여름 신제품 SNS 콘텐츠 콘셉트 5안을 표로(콘셉트명/훅/포맷/CTA) 제안해줘.",
+                "prompt_example": "타깃 20–30대, 채널 Instagram·TikTok, 톤은 상쾌·실용. 여름 신제품 수영복 SNS 콘텐츠 콘셉트 5안을 표로(콘셉트명/훅/포맷/CTA) 제안해줘.",
             },
             {
                 "order": 2,
@@ -130,7 +130,7 @@ PRESET_GUIDE_WORKFLOWS: dict[str, dict] = {
                 "order": 2,
                 "title": "리스크 체크리스트",
                 "tool": "Gemini",
-                "instruction": "각 안의 리스크·가드레일(일일 상한, 중단 조건)을 체크리스트로 뽑는다.",
+                "instruction": "각 안의 리스크·한도 가드(일일 상한, 중단 조건)를 체크리스트로 뽑는다.",
                 "prompt_example": "아래 배분안마다 리스크 3개와 ‘즉시 중단 조건’ 2개를 체크리스트로 정리해줘.\n\n[배분표]",
             },
             {

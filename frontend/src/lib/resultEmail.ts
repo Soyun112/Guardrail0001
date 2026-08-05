@@ -57,13 +57,13 @@ function verdictChip(verdict: Verdict): string {
 export function buildResultEmailSubject(projectInput: string): string {
   const short =
     projectInput.length > 40 ? `${projectInput.slice(0, 40)}…` : projectInput;
-  return `[가드레일] ${short} · 업무 분배 결과`;
+  return `[Guiderail] ${short} · 업무 분배 결과`;
 }
 
 export function buildResultEmailPlainText(payload: ResultEmailPayload): string {
   const { guideMap, byMember, unassigned } = groupByMember(payload);
   const lines: string[] = [
-    "가드레일 · 업무 분배 결과",
+    "Guiderail · 업무 분배 결과",
     "────────────────────────",
     `프로젝트: ${payload.projectInput}`,
     "",
@@ -99,7 +99,7 @@ export function buildResultEmailPlainText(payload: ResultEmailPayload): string {
   lines.push(
     "────────────────────────",
     "본 결과는 기술·업무 참고용이며 법적·규제 자문이 아닙니다.",
-    "가드레일 (Guardrail)",
+    "Guiderail",
   );
   return lines.join("\n");
 }
@@ -218,7 +218,7 @@ export function buildResultEmailHtml(payload: ResultEmailPayload): string {
                 GUARDRAIL
               </p>
               <h1 style="margin:8px 0 0;font-size:26px;line-height:1.25;font-weight:800;color:#ffffff;">
-                가드레일 · 업무 분배 결과
+                Guiderail · 업무 분배 결과
               </h1>
               <p style="margin:10px 0 0;font-size:13px;color:#ccfbf1;">
                 ${escapeHtml(date)}
@@ -249,7 +249,7 @@ export function buildResultEmailHtml(payload: ResultEmailPayload): string {
           <tr>
             <td style="padding:8px 28px 28px;">
               <p style="margin:0;padding-top:16px;border-top:1px solid #e8eeeb;font-size:11px;line-height:1.5;color:#8a9a93;">
-                본 결과는 기술·업무 참고용이며 법적·규제 자문이 아닙니다. · 가드레일 (Guardrail)
+                본 결과는 기술·업무 참고용이며 법적·규제 자문이 아닙니다. · Guiderail
               </p>
             </td>
           </tr>
@@ -273,7 +273,7 @@ export function downloadResultHtml(
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `가드레일-${safe}.html`;
+  a.download = `Guiderail-${safe}.html`;
   a.click();
   URL.revokeObjectURL(url);
 }

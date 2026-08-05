@@ -9,11 +9,12 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { VerdictBadge } from "../components/VerdictBadge";
 import { postAssign } from "../lib/api";
+import { autoAssignBySkills } from "../lib/skillAssign";
 import { useSession } from "../lib/session";
 import type { TaskItem } from "../lib/types";
 
@@ -108,10 +109,22 @@ export default function AssignPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const autoKeyRef = useRef<string>("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
+
+  useEffect(() => {
+    if (!tasks.length) return;
+    const key = tasks.map((t) => t.id).join(",");
+    if (autoKeyRef.current === key) return;
+    const hasAny = Object.values(assignments).some(Boolean);
+    if (!hasAny) {
+      setAssignments(autoAssignBySkills(tasks, members));
+    }
+    autoKeyRef.current = key;
+  }, [tasks, members, assignments, setAssignments]);
 
   if (!tasks.length) return <Navigate to="/project" replace />;
 
@@ -163,13 +176,8 @@ export default function AssignPage() {
     }
   }
 
-  function autoFillEven() {
-    const next: Record<string, "A" | "B" | "C"> = {};
-    const order: ("A" | "B" | "C")[] = ["A", "B", "C"];
-    tasks.forEach((t, i) => {
-      next[t.id] = order[i % 3];
-    });
-    setAssignments(next);
+  function reassignBySkills() {
+    setAssignments(autoAssignBySkills(tasks, members));
   }
 
   return (
@@ -179,20 +187,17 @@ export default function AssignPage() {
         분배
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-ink-700/75">
-        업무 카드를 팀원 컬럼으로 드래그하세요.{" "}
-        <span className="font-semibold text-ink-900">
-          분배는 팀장(사람) 몫
-        </span>
-        입니다. AI 자동매칭은 없습니다.
+        팀원 스킬에 맞춰 먼저 자동 배정했습니다. 팀장이 드래그로 조정할 수
+        있습니다.
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={autoFillEven}
+          onClick={reassignBySkills}
           className="rounded-md border border-ink-200 bg-white px-3 py-1.5 text-xs text-ink-700"
         >
-          균등 배정
+          스킬 기준 재배정
         </button>
       </div>
 

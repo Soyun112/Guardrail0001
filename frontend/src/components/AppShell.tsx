@@ -44,7 +44,7 @@ export function AppShell() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
           <div>
             <p className="font-display text-xl font-extrabold tracking-tight text-accent-dark">
-              가드레일
+              Guiderail
             </p>
             <p className="text-xs text-ink-700/55">팀 AI 배분 워크스페이스</p>
           </div>

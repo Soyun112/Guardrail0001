@@ -66,14 +66,14 @@ export function ShareResultModal({
         recipient,
         subject,
         [
-          "가드레일 업무 분배 결과를 공유합니다.",
+          "Guiderail 업무 분배 결과를 공유합니다.",
           "",
           `프로젝트: ${payload.projectInput}`,
           "",
           "내용이 길어 자세한 HTML 보고서를 함께 내려받았습니다.",
           "첨부하거나 브라우저에서 열어 확인해 주세요.",
           "",
-          "— 가드레일",
+          "— Guiderail",
         ].join("\n"),
       );
       setHint("내용이 길어 HTML 보고서를 함께 받았습니다. 메일 앱이 열립니다.");

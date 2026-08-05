@@ -21,8 +21,8 @@ const FLOW = [
   },
   {
     step: "04",
-    title: "팀장 드래그 분배",
-    body: "성향을 보고 팀원이 직접 업무를 배정합니다. AI 자동매칭 없음.",
+    title: "스킬 자동 배정",
+    body: "팀원 스킬에 맞춰 먼저 배정하고, 팀장이 드래그로 조정합니다.",
   },
 ];
 
@@ -96,7 +96,7 @@ export default function LoginPage() {
       <header className="sticky top-0 z-40 border-b border-ink-200/70 bg-ink-50/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <a href="#top" className="font-display text-xl font-extrabold tracking-tight text-accent-dark">
-            가드레일
+            Guiderail
           </a>
           <nav className="hidden items-center gap-7 text-sm text-ink-700/75 md:flex">
             <a href="#problem" className="transition hover:text-accent-dark">
@@ -138,14 +138,15 @@ export default function LoginPage() {
         <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-20 pt-16 md:grid-cols-[1.05fr_0.95fr] md:items-center md:pt-24">
           <div>
             <p className="animate-rise font-display text-5xl font-extrabold tracking-tight text-accent-dark md:text-6xl">
-              가드레일
+              Guiderail
             </p>
             <h1 className="animate-rise-delay mt-5 max-w-xl text-2xl font-semibold leading-snug text-ink-900 md:text-3xl">
               팀장이 AI를 몰라도, 팀에 AI를 배분할 수 있게
             </h1>
             <p className="animate-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-ink-700/80">
               프로젝트를 업무로 분해하고 신호등으로 판정한 뒤, 승인된 AI
-              가이드와 함께 팀장이 직접 분배합니다.
+              가이드와 함께 팀원 스킬에 맞춰 자동 배정합니다. 팀장은 드래그로
+              조정할 수 있습니다.
             </p>
             <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
               <a
@@ -162,7 +163,6 @@ export default function LoginPage() {
                 로그인 없이 둘러보기
               </button>
             </div>
-            <p className="mt-5 text-xs text-ink-700/55">승인 AI · Gemini · Copilot</p>
           </div>
 
           <div className="hero-stage animate-rise-delay hidden md:block">
@@ -181,9 +181,9 @@ export default function LoginPage() {
                     </span>
                   </div>
                   <p className="mt-4 font-display text-xl font-semibold tracking-tight text-white">
-                    여름 신제품 SNS 캠페인
+                    여름 신제품 수영복 SNS 캠페인
                   </p>
-                  <p className="mt-1 text-xs text-teal-100/55">신호등 판정 · 승인 AI 가이드</p>
+                  <p className="mt-1 text-xs text-teal-100/55">신호등 판정 · AI 가이드 · 스킬 배정</p>
 
                   <ol className="mt-8 space-y-3.5">
                     {PREVIEW_TASKS.map((item, i) => (
@@ -204,7 +204,7 @@ export default function LoginPage() {
                   </ol>
 
                   <div className="mt-auto border-t border-white/10 pt-5 text-xs text-teal-100/55">
-                    분배는 사람(팀장)의 몫 · AI 자동매칭 없음
+                    스킬 자동 배정 · 팀장이 드래그로 조정
                   </div>
                 </div>
               </div>
@@ -216,14 +216,14 @@ export default function LoginPage() {
       <section id="problem" className="border-t border-ink-200/80 bg-white py-20">
         <div className="mx-auto max-w-6xl px-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
-            Why Guardrail
+            Why Guiderail
           </p>
           <h2 className="mt-3 max-w-2xl font-display text-3xl font-bold tracking-tight text-ink-900 md:text-4xl">
             개인에게 AI를 가르치는 대신, 팀 단위로 AI를 배분합니다
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-ink-700/75">
             팀원은 도구를 배우느라 시간을 쓰고, 팀장은 어디까지 AI에 맡겨도
-            되는지 판단하기 어렵습니다. 가드레일은 판정·가이드·분배를 한
+            되는지 판단하기 어렵습니다. Guiderail은 판정·가이드·분배를 한
             흐름으로 묶어 팀장이 의사결정할 수 있게 합니다.
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
@@ -234,11 +234,11 @@ export default function LoginPage() {
               },
               {
                 title: "승인된 AI만",
-                body: "회사 허용 도구(Gemini, Copilot) 안에서만 가이드합니다.",
+                body: "회사 허용 도구 안에서만 가이드합니다.",
               },
               {
-                title: "사람이 분배",
-                body: "팀원이 성향을 보고 드래그로 배정합니다. 자동매칭 없음.",
+                title: "스킬 맞춤 배정",
+                body: "팀원 스킬에 맞춰 자동 배정하고, 팀장이 드래그로 조정합니다.",
               },
             ].map((item) => (
               <div key={item.title} className="border-l-2 border-accent/40 pl-5">
@@ -322,7 +322,7 @@ export default function LoginPage() {
         <div className="relative mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-[1fr_20rem] md:items-end">
           <div className="max-w-xl">
             <p className="font-display text-4xl font-bold tracking-tight md:text-5xl">
-              가드레일
+              Guiderail
             </p>
             <p className="mt-4 text-base leading-relaxed text-ink-100/75">
               이메일로 로그인하거나, 로그인 없이 바로 둘러볼 수 있습니다.
@@ -377,9 +377,9 @@ export default function LoginPage() {
 
       <footer className="border-t border-ink-800 bg-ink-900 px-4 py-10 text-ink-200/60">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <p className="font-display text-lg font-bold text-ink-50">가드레일</p>
+          <p className="font-display text-lg font-bold text-ink-50">Guiderail</p>
           <p className="text-xs">
-            B2B · Gemini · Copilot · 분배는 팀장(사람) 몫
+            B2B · 스킬 자동 배정 · 팀장 드래그 조정
           </p>
         </div>
       </footer>

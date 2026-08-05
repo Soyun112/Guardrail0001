@@ -1,36 +1,61 @@
 import type { TaskItem } from "../lib/types";
-import { VERDICT_EMOJI } from "../lib/types";
+import { VERDICT_EMOJI, VERDICT_LABEL } from "../lib/types";
+
+const DOT: Record<TaskItem["verdict"], string> = {
+  green: "bg-signal-green",
+  amber: "bg-signal-amber",
+  red: "bg-signal-red",
+};
 
 export function WorkflowDiagram({ tasks }: { tasks: TaskItem[] }) {
   const ordered = [...tasks].sort((a, b) => a.order_index - b.order_index);
 
   if (!ordered.length) {
     return (
-      <p className="text-sm text-ink-700/60">업무가 없으면 워크플로를 표시할 수 없습니다.</p>
+      <p className="text-sm text-ink-700/60">
+        업무가 없으면 워크플로를 표시할 수 없습니다.
+      </p>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <ol className="flex min-w-max items-center gap-2 py-2">
+    <div>
+      <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {ordered.map((task, i) => (
-          <li key={task.id} className="flex items-center gap-2">
-            <div className="min-w-[9.5rem] border border-ink-200 bg-white px-3 py-2.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-700/45">
-                Step {task.order_index}
-              </p>
-              <p className="mt-1 text-xs font-semibold leading-snug text-ink-900">
-                {VERDICT_EMOJI[task.verdict]} {task.name}
-              </p>
+          <li
+            key={task.id}
+            className="relative border border-ink-200 bg-ink-50/50 px-3 py-3"
+          >
+            <div className="flex items-start gap-2.5">
+              <span className="font-display text-sm font-bold tabular-nums text-accent/55">
+                {String(task.order_index).padStart(2, "0")}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${DOT[task.verdict]}`}
+                    aria-hidden
+                  />
+                  <span className="text-[10px] font-medium text-ink-700/55">
+                    {VERDICT_EMOJI[task.verdict]} {VERDICT_LABEL[task.verdict]}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-sm font-semibold leading-snug text-ink-900">
+                  {task.name}
+                </p>
+              </div>
             </div>
             {i < ordered.length - 1 ? (
-              <span className="text-accent/60" aria-hidden>
-                →
-              </span>
+              <p className="mt-2 text-[10px] font-medium text-accent/50 sm:hidden">
+                ↓ 다음
+              </p>
             ) : null}
           </li>
         ))}
       </ol>
+      <p className="mt-3 text-[11px] text-ink-700/50">
+        위에서 아래·왼쪽에서 오른쪽 순서로 진행합니다. (총 {ordered.length}단계)
+      </p>
     </div>
   );
 }

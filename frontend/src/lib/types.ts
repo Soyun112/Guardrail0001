@@ -50,7 +50,7 @@ export type GuideItem = {
 
 export type AssignmentMap = Record<string, "A" | "B" | "C" | null>;
 
-export const PRESET_PROJECT = "여름 신제품 SNS 캠페인";
+export const PRESET_PROJECT = "여름 신제품 수영복 SNS 캠페인";
 
 /** Catalog shown in 승인 AI 관리 modal */
 export const AI_CATALOG = [

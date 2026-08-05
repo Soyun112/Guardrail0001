@@ -48,7 +48,7 @@ def _normalize_tasks(tasks: list, approved: list[str]) -> list:
 
 def _gemini_decompose(project_input: str, approved: list[str]) -> dict:
     allowed = " | ".join(approved)
-    system = f"""당신은 B2B AI 가드레일 어시스턴트다.
+    system = f"""당신은 B2B AI Guiderail 어시스턴트다.
 프로젝트를 상위 업무 4~8개로 분해하고 각 업무를 green/amber/red로 판정한다.
 추천 AI는 다음 승인 목록에서만 고른다: {allowed}
 JSON만 출력한다."""

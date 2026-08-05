@@ -7,105 +7,90 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { isSupabaseConfigured, supabase } from "./supabase";
+
+type LocalUser = {
+  id: string;
+  email: string;
+};
 
 type AuthContextValue = {
   loading: boolean;
   isAuthed: boolean;
   isGuest: boolean;
-  user: User | null;
+  user: LocalUser | null;
   email: string | null;
-  configured: boolean;
   enterGuest: () => void;
-  signInWithGoogle: () => Promise<{ error: string | null }>;
-  signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => { error: string | null };
+  signOut: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const GUEST_KEY = "guardrail_guest";
+const USER_KEY = "guardrail_user";
+
+function readStoredUser(): LocalUser | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as LocalUser;
+    if (!parsed?.email) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<LocalUser | null>(null);
   const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-
-    async function init() {
-      if (!supabase) {
-        const guest = sessionStorage.getItem(GUEST_KEY) === "1";
-        if (mounted) {
-          setIsGuest(guest);
-          setLoading(false);
-        }
-        return;
-      }
-
-      const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      setSession(data.session);
-      if (!data.session && sessionStorage.getItem(GUEST_KEY) === "1") {
-        setIsGuest(true);
-      }
-      setLoading(false);
-
-      const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-        setSession(next);
-        if (next) {
-          sessionStorage.removeItem(GUEST_KEY);
-          setIsGuest(false);
-        }
-      });
-
-      return () => {
-        sub.subscription.unsubscribe();
-      };
+    const stored = readStoredUser();
+    if (stored) {
+      setUser(stored);
+      sessionStorage.removeItem(GUEST_KEY);
+      setIsGuest(false);
+    } else if (sessionStorage.getItem(GUEST_KEY) === "1") {
+      setIsGuest(true);
     }
-
-    let cleanup: (() => void) | undefined;
-    void init().then((fn) => {
-      if (typeof fn === "function") cleanup = fn;
-    });
-
-    return () => {
-      mounted = false;
-      cleanup?.();
-    };
+    setLoading(false);
   }, []);
 
   const enterGuest = useCallback(() => {
+    localStorage.removeItem(USER_KEY);
     sessionStorage.setItem(GUEST_KEY, "1");
+    setUser(null);
     setIsGuest(true);
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
-    if (!supabase) {
-      return {
-        error:
-          "Supabase가 설정되지 않았습니다. VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY를 확인하세요.",
-      };
+  const signIn = useCallback((email: string, password: string) => {
+    const trimmed = email.trim();
+    if (!trimmed || !trimmed.includes("@")) {
+      return { error: "올바른 이메일을 입력하세요." };
     }
-    const redirectTo = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
-    return { error: error?.message || null };
-  }, []);
-
-  const signOut = useCallback(async () => {
+    if (!password.trim()) {
+      return { error: "비밀번호를 입력하세요." };
+    }
+    const next: LocalUser = {
+      id: `local-${trimmed.toLowerCase()}`,
+      email: trimmed,
+    };
+    localStorage.setItem(USER_KEY, JSON.stringify(next));
     sessionStorage.removeItem(GUEST_KEY);
+    setUser(next);
     setIsGuest(false);
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
-    setSession(null);
+    return { error: null };
   }, []);
 
-  const user = session?.user ?? null;
+  const signOut = useCallback(() => {
+    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(GUEST_KEY);
+    setUser(null);
+    setIsGuest(false);
+  }, []);
+
   const isAuthed = Boolean(user) || isGuest;
 
   const value = useMemo(
@@ -115,20 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isGuest,
       user,
       email: user?.email ?? null,
-      configured: isSupabaseConfigured,
       enterGuest,
-      signInWithGoogle,
+      signIn,
       signOut,
     }),
-    [
-      loading,
-      isAuthed,
-      isGuest,
-      user,
-      enterGuest,
-      signInWithGoogle,
-      signOut,
-    ],
+    [loading, isAuthed, isGuest, user, enterGuest, signIn, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

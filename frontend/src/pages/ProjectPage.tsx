@@ -1,14 +1,11 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { postDecompose } from "../lib/api";
-import { useAuth } from "../lib/auth";
-import { saveProjectBundle } from "../lib/persist";
 import { useSession } from "../lib/session";
 import { PRESET_PROJECT, clampRecommendedAi } from "../lib/types";
 
 export default function ProjectPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const {
     projectInput,
     setProjectInput,
@@ -45,24 +42,12 @@ export default function ProjectPage() {
       setMembers(data.members);
       setSource(data.source);
       setGuides([]);
+      setProjectId(null);
       const emptyAssign: Record<string, null> = {};
       tasks.forEach((t) => {
         emptyAssign[t.id] = null;
       });
       setAssignments(emptyAssign);
-
-      if (user?.id) {
-        const id = await saveProjectBundle({
-          userId: user.id,
-          rawInput: data.project.raw_input,
-          goal: data.project.goal,
-          tasks,
-        });
-        setProjectId(id);
-      } else {
-        setProjectId(null);
-      }
-
       navigate("/decompose");
     } catch (err) {
       setError(err instanceof Error ? err.message : "분해 요청 실패");

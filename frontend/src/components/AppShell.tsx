@@ -69,9 +69,8 @@ export function AppShell() {
             <button
               type="button"
               onClick={() => {
-                void signOut().then(() => {
-                  window.location.href = "/";
-                });
+                signOut();
+                window.location.href = "/";
               }}
               className="rounded-md border border-ink-200 px-3 py-1.5 text-xs font-medium text-ink-700/80 transition hover:border-accent/40 hover:text-accent-dark"
             >

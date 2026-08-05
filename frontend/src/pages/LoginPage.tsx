@@ -1,5 +1,5 @@
+import { FormEvent, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { Disclaimer } from "../components/Disclaimer";
 import { useAuth } from "../lib/auth";
 
@@ -59,10 +59,10 @@ const PREVIEW_TASKS = [
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { enterGuest, isAuthed, loading, signInWithGoogle, configured } =
-    useAuth();
+  const { enterGuest, isAuthed, loading, signIn } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
-  const [authBusy, setAuthBusy] = useState(false);
 
   if (loading) {
     return (
@@ -81,12 +81,14 @@ export default function LoginPage() {
     navigate("/project");
   }
 
-  async function startWithGoogle() {
-    setAuthBusy(true);
-    setAuthError(null);
-    const { error } = await signInWithGoogle();
-    setAuthBusy(false);
-    if (error) setAuthError(error);
+  function onLogin(e: FormEvent) {
+    e.preventDefault();
+    const { error } = signIn(email, password);
+    if (error) {
+      setAuthError(error);
+      return;
+    }
+    navigate("/project");
   }
 
   return (
@@ -110,14 +112,12 @@ export default function LoginPage() {
               시작
             </a>
           </nav>
-          <button
-            type="button"
-            onClick={() => void startWithGoogle()}
-            disabled={authBusy}
-            className="rounded-md bg-accent px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
+          <a
+            href="#start"
+            className="rounded-md bg-accent px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark"
           >
             시작하기
-          </button>
+          </a>
         </div>
       </header>
 
@@ -148,14 +148,12 @@ export default function LoginPage() {
               가이드와 함께 팀장이 직접 분배합니다.
             </p>
             <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => void startWithGoogle()}
-                disabled={authBusy}
-                className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
+              <a
+                href="#start"
+                className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark"
               >
-                {authBusy ? "이동 중…" : "Google로 계속하기"}
-              </button>
+                로그인하고 시작
+              </a>
               <button
                 type="button"
                 onClick={startWithoutLogin}
@@ -164,18 +162,9 @@ export default function LoginPage() {
                 로그인 없이 둘러보기
               </button>
             </div>
-            {authError ? (
-              <p className="mt-3 text-xs text-signal-red">{authError}</p>
-            ) : null}
-            {!configured ? (
-              <p className="mt-2 text-xs text-ink-700/50">
-                Google 로그인은 Supabase 환경변수 설정 후 사용할 수 있습니다.
-              </p>
-            ) : null}
             <p className="mt-5 text-xs text-ink-700/55">승인 AI · Gemini · Copilot</p>
           </div>
 
-          {/* Redesigned workflow preview */}
           <div className="hero-stage animate-rise-delay hidden md:block">
             <div className="hero-stack">
               <div className="hero-stack-back" aria-hidden />
@@ -330,33 +319,59 @@ export default function LoginPage() {
         className="relative overflow-hidden border-t border-ink-200/80 bg-ink-900 py-20 text-ink-50"
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_30%,rgba(13,148,136,0.28),transparent_50%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 md:flex md:items-end md:justify-between md:gap-10">
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-[1fr_20rem] md:items-end">
           <div className="max-w-xl">
             <p className="font-display text-4xl font-bold tracking-tight md:text-5xl">
               가드레일
             </p>
             <p className="mt-4 text-base leading-relaxed text-ink-100/75">
-              프로젝트를 입력하고, 신호등 판정과 승인 AI 가이드로 팀에 AI를
-              배분해 보세요.
+              이메일로 로그인하거나, 로그인 없이 바로 둘러볼 수 있습니다.
             </p>
           </div>
-          <div className="mt-8 flex flex-col gap-3 md:mt-0 md:min-w-[16rem]">
+
+          <form
+            onSubmit={onLogin}
+            className="space-y-3 border border-white/15 bg-white/5 p-5 backdrop-blur"
+          >
+            <label className="block text-xs text-ink-100/70">
+              이메일
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 w-full border border-white/20 bg-ink-900/40 px-3 py-2 text-sm text-white outline-none focus:border-accent"
+                placeholder="you@company.com"
+                required
+              />
+            </label>
+            <label className="block text-xs text-ink-100/70">
+              비밀번호
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 w-full border border-white/20 bg-ink-900/40 px-3 py-2 text-sm text-white outline-none focus:border-accent"
+                placeholder="비밀번호"
+                required
+              />
+            </label>
+            {authError ? (
+              <p className="text-xs text-rose-300">{authError}</p>
+            ) : null}
             <button
-              type="button"
-              onClick={() => void startWithGoogle()}
-              disabled={authBusy}
-              className="rounded-md bg-accent px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
+              type="submit"
+              className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-accent-dark"
             >
-              Google로 계속하기
+              로그인
             </button>
             <button
               type="button"
               onClick={startWithoutLogin}
-              className="rounded-md border border-white/15 px-6 py-3.5 text-sm text-ink-100/90 transition hover:border-white/40"
+              className="w-full rounded-md border border-white/15 px-4 py-2.5 text-sm text-ink-100/90 hover:border-white/40"
             >
               로그인 없이 둘러보기
             </button>
-          </div>
+          </form>
         </div>
       </section>
 

@@ -14,8 +14,6 @@ import type { ReactNode } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { VerdictBadge } from "../components/VerdictBadge";
 import { postAssign } from "../lib/api";
-import { useAuth } from "../lib/auth";
-import { saveAssignmentsBundle, saveProjectBundle } from "../lib/persist";
 import { useSession } from "../lib/session";
 import type { TaskItem } from "../lib/types";
 
@@ -99,14 +97,9 @@ function DropColumn({
 
 export default function AssignPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const {
     projectInput,
-    goal,
-    projectId,
-    setProjectId,
     tasks,
-    guides,
     members,
     assignments,
     assignTask,
@@ -162,28 +155,6 @@ export default function AssignPage() {
     setError(null);
     try {
       await postAssign(projectInput, items);
-
-      if (user?.id) {
-        let pid = projectId;
-        if (!pid) {
-          pid = await saveProjectBundle({
-            userId: user.id,
-            rawInput: projectInput,
-            goal,
-            tasks,
-            guides,
-          });
-          setProjectId(pid);
-        }
-        if (pid) {
-          await saveAssignmentsBundle({
-            projectId: pid,
-            assignments: items,
-            tasks,
-          });
-        }
-      }
-
       navigate("/result");
     } catch (err) {
       setError(err instanceof Error ? err.message : "분배 저장 실패");

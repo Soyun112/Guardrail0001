@@ -1,4 +1,4 @@
-"""In-memory store when Supabase is not configured."""
+"""In-memory store for optional session persistence."""
 
 from __future__ import annotations
 

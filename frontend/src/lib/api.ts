@@ -75,6 +75,7 @@ export function postExecute(payload: {
     task_id: string;
     task_name: string;
     detail?: string;
+    source?: string;
     stages: { key: string; label: string; content: string }[];
   }>("/execute", {
     method: "POST",

@@ -14,9 +14,11 @@ export default function ResultPage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [executingId, setExecutingId] = useState<string | null>(null);
   const [execError, setExecError] = useState<string | null>(null);
+  const [execNotice, setExecNotice] = useState<string | null>(null);
   const [execResult, setExecResult] = useState<{
     task_name: string;
     stages: { key: string; label: string; content: string }[];
+    source?: string;
   } | null>(null);
 
   const guideMap = useMemo(() => {
@@ -42,6 +44,7 @@ export default function ResultPage() {
   async function runExecute(taskId: string, taskName: string) {
     setExecutingId(taskId);
     setExecError(null);
+    setExecNotice(null);
     setExecResult(null);
     try {
       const data = await postExecute({
@@ -53,9 +56,29 @@ export default function ResultPage() {
         setExecError(data.detail || "실행할 수 없습니다.");
         return;
       }
-      setExecResult({ task_name: data.task_name, stages: data.stages });
+      setExecResult({
+        task_name: data.task_name,
+        stages: data.stages,
+        source: data.source,
+      });
+      if (data.source === "fallback" && data.detail) {
+        setExecNotice(data.detail);
+      }
     } catch (err) {
-      setExecError(err instanceof Error ? err.message : "실행 실패");
+      const raw = err instanceof Error ? err.message : "실행 실패";
+      const lower = raw.toLowerCase();
+      if (
+        lower.includes("429") ||
+        lower.includes("quota") ||
+        lower.includes("할당량") ||
+        lower.includes("rate")
+      ) {
+        setExecError(
+          "Gemini 무료 할당량(분당 한도)을 초과했습니다. 약 40초 후 다시 눌러 주세요.",
+        );
+      } else {
+        setExecError(raw.length > 220 ? `${raw.slice(0, 220)}…` : raw);
+      }
     } finally {
       setExecutingId(null);
     }
@@ -152,10 +175,17 @@ export default function ResultPage() {
         </p>
       ) : null}
 
+      {execNotice ? (
+        <p className="mt-4 border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          {execNotice}
+        </p>
+      ) : null}
+
       {execResult ? (
         <div className="mt-6 border border-ink-200 bg-white p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-accent-dark">
             실행 결과 · {execResult.task_name}
+            {execResult.source === "fallback" ? " (데모)" : ""}
           </p>
           <ol className="mt-4 space-y-4">
             {execResult.stages.map((stage, i) => (

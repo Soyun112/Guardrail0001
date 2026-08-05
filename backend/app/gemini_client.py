@@ -9,6 +9,26 @@ from fastapi import HTTPException
 
 from app.config import settings
 
+QUOTA_HINT = (
+    "Gemini 무료 할당량(분당 요청 한도)을 초과했습니다. "
+    "약 40초 후 다시 시도해 주세요."
+)
+
+
+def is_quota_error(message: object) -> bool:
+    text = str(message).lower()
+    return any(
+        token in text
+        for token in (
+            "429",
+            "quota",
+            "rate limit",
+            "resource_exhausted",
+            "exceeded your current quota",
+            "할당량",
+        )
+    )
+
 
 def require_gemini() -> None:
     if not settings.GEMINI_API_KEY:
@@ -40,7 +60,12 @@ def generate_text(prompt: str, system_instruction: str | None = None) -> str:
             text = "".join(getattr(p, "text", "") for p in parts)
         return text.strip()
     except Exception as exc:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"Gemini 호출 실패: {exc}") from exc
+        if is_quota_error(exc):
+            raise HTTPException(status_code=429, detail=QUOTA_HINT) from exc
+        raise HTTPException(
+            status_code=502,
+            detail=f"Gemini 호출 실패: {str(exc)[:240]}",
+        ) from exc
 
 
 def strip_json_fence(text: str) -> str:

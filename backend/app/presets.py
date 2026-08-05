@@ -160,21 +160,34 @@ def get_preset_decompose_response(raw_input: str) -> dict:
 
 
 def get_preset_guides(task_ids: list[str] | None = None) -> list[dict]:
+    from app.guide_workflows import build_rich_guide_from_preset
+
     selected = PRESET_TASKS
     if task_ids:
         id_set = set(task_ids)
         selected = [t for t in PRESET_TASKS if t["id"] in id_set]
-    return [
-        {
-            "task_id": t["id"],
-            "task_name": t["name"],
-            "verdict": t["verdict"],
-            "recommended_ai": t["recommended_ai"],
-            "guide": t["guide"],
-            "how": _how_detail(t),
-        }
-        for t in selected
-    ]
+    guides = []
+    for t in selected:
+        rich = build_rich_guide_from_preset(t)
+        if rich:
+            guides.append(rich)
+        else:
+            guides.append(
+                {
+                    "task_id": t["id"],
+                    "task_name": t["name"],
+                    "verdict": t["verdict"],
+                    "recommended_ai": t["recommended_ai"],
+                    "summary": t["guide"],
+                    "guide": t["guide"],
+                    "how": _how_detail(t),
+                    "steps": [],
+                    "human_checkpoint": "",
+                    "caution": "",
+                    "recommended_ai_note": None,
+                }
+            )
+    return guides
 
 
 def _how_detail(task: dict) -> str:

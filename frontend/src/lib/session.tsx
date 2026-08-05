@@ -83,12 +83,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         recommended_ai: clampRecommendedAi(t.recommended_ai, approved),
       })),
     );
-    setGuides((prev) =>
-      prev.map((g) => ({
-        ...g,
-        recommended_ai: clampRecommendedAi(g.recommended_ai, approved),
-      })),
-    );
+    // Clear guides so Guide page regenerates within the new approved list.
+    setGuides([]);
   }, []);
 
   const toggleApprovedAi = useCallback(

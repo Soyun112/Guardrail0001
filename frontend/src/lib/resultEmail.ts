@@ -30,7 +30,7 @@ function guideFor(
   const g = guideMap.get(task.id);
   return {
     ai: g?.recommended_ai || task.recommended_ai,
-    guide: g?.guide || task.guide,
+    guide: g?.summary || g?.guide || task.guide,
   };
 }
 

@@ -25,13 +25,27 @@ export type Member = {
   blurb: string;
 };
 
+export type GuideStep = {
+  order: number;
+  title: string;
+  tool: string;
+  instruction: string;
+  prompt_example?: string;
+};
+
 export type GuideItem = {
   task_id: string;
   task_name: string;
   verdict: Verdict;
   recommended_ai: string;
+  recommended_ai_note?: string | null;
+  /** One-line summary (blue accent). */
+  summary?: string;
   guide: string;
   how: string;
+  steps?: GuideStep[];
+  human_checkpoint?: string;
+  caution?: string;
 };
 
 export type AssignmentMap = Record<string, "A" | "B" | "C" | null>;
@@ -45,6 +59,9 @@ export const AI_CATALOG = [
   "ChatGPT",
   "Claude",
   "Perplexity",
+  "Canva",
+  "Manus",
+  "Genspark",
 ] as const;
 
 export const DEFAULT_APPROVED_AI = ["Gemini", "Copilot"];

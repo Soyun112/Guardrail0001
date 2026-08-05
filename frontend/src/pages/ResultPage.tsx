@@ -140,7 +140,7 @@ export default function ResultPage() {
                         </span>
                       </p>
                       <p className="mt-1 text-xs leading-relaxed text-ink-700/70">
-                        {g?.guide || task.guide}
+                        {g?.summary || g?.guide || task.guide}
                       </p>
                       {task.verdict === "green" ? (
                         <button
